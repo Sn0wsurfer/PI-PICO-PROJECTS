@@ -3,8 +3,8 @@ import socket
 from time import sleep
 from picozero import pico_temp_sensor, pico_led
 import machine
-ssid = 'PreAnthropocene'
-password = 'Arr1p1sTrutt@'
+ssid = '******'
+password = '******'
 
 def connect():
     #Connect to WLAN
