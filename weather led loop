@@ -1,0 +1,116 @@
+import urequests as requests
+from machine import Pin
+from neopixel import Neopixel
+import ujson
+import network
+import socket
+from time import sleep
+import time
+from picozero import pico_temp_sensor, pico_led
+import machine
+
+# network.hostname("xxxx")
+ssid = 'xxxx'
+password = 'xxxx'
+Hname = "xxxx"
+
+
+#https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid=7d635aea345b49cbecc4d2158bebe7b2
+def get_weather_data():
+    weather_url = 'https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid=7d635aea345b49cbecc4d2158bebe7b2'
+
+    try:
+        response = requests.get(weather_url)
+        if response.status_code == 200:
+        # Parse the JSON response
+            weather_data = ujson.loads(response.text)
+            
+            # Extract wind speed and temperature
+            wind_speed = weather_data.get("wind", {}).get("speed")
+            temperature = weather_data.get("main", {}).get("temp")
+            windno = int(round(wind_speed)*3.6)
+            temp = int(round(temperature -273.15))
+            
+            print(f"Wind Speed: {windno}kph")
+            print(f"Temperature: {temp}°C")
+            v_windno = windno
+            v_temp = temp
+            return [v_windno, v_temp]
+        else:
+            print("Failed to fetch weather data")
+    except Exception as e:
+        print('Error:', e)
+        
+        
+def connect():
+    #Connect to WLAN
+    wlan = network.hostname(Hname)
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(ssid, password)
+    while wlan.isconnected() == False:
+        print('Waiting for connection...')
+        sleep(1)
+    ip = wlan.ifconfig()[0]
+    print(f'Connected on {ip}')
+    return ip
+
+def open_socket(ip):
+    # Open a socket
+    address = (ip, 80)
+    connection = socket.socket()
+    connection.bind(address)
+    connection.listen(1)
+    return(connection)
+
+def color_led(v_windno, v_temp):
+    numpix = 202
+    pixels = Neopixel(numpix, 0, 28, "GRB")
+    yellow = (100, 100, 0)
+    orange = (255, 50, 0)
+    green = (0, 255, 0)
+    blue = (0, 0, 255)
+    lblue = (51,243,255)
+    red = (255, 0, 0)
+    pink = (255,25,80)
+    Marker = blue
+    color0 = red
+#     pixels.fill(0,0,0)
+    pixels.brightness(50)
+    pixels.fill(green)
+    pixels.set_pixel_line_gradient(101, v_windno + 100, pink, red)
+    pixels.set_pixel_line_gradient(0, v_temp * 2, pink, red)
+    # pixels.set_pixel_line(1, 16, red)
+    # pixels.set_pixel(20, (255, 255, 255))
+    pixels.set_pixel(20, Marker)
+    pixels.set_pixel(40, Marker)
+    pixels.set_pixel(60, Marker)
+    pixels.set_pixel(80, Marker)
+    pixels.set_pixel(100, Marker)
+    pixels.set_pixel(101, (0,0,0))
+    pixels.set_pixel(110, Marker)
+    pixels.set_pixel(120, Marker)
+    pixels.set_pixel(130, Marker)
+    pixels.set_pixel(140, Marker)
+    pixels.set_pixel(150, Marker)
+    pixels.set_pixel(160, Marker)
+    pixels.set_pixel(170, Marker)
+    pixels.set_pixel(180, Marker)
+    pixels.set_pixel(190, Marker)
+    pixels.set_pixel(200, Marker)
+    pixels.show()
+    return
+
+
+try:
+    ip = connect()
+    connection = open_socket(ip)
+    while True:
+        v_windno, v_temp = get_weather_data() 
+        color_led(v_windno,v_temp)
+        time.sleep(900)
+    
+except KeyboardInterrupt:
+    machine.reset()
+
+
