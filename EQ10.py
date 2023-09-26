@@ -13,8 +13,8 @@ EQid2 = "New"
 
 while Loopv <= 8000:
     if Loopv % 30 == 0:
-            #     data = requests.get("https://api.openweathermap.org/data/2.5/weather?q=wellington,nz&appid=7d635aea345b49cbecc4d2158bebe7b2").json()
-        data = requests.get("https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid=7d635aea345b49cbecc4d2158bebe7b2").json()
+            #     data = requests.get("https://api.openweathermap.org/data/2.5/weather?q=wellington,nz&appid=").json()
+        data = requests.get("https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid=").json()
         json_str = json.dumps(data)
         resp = json.loads(json_str)
         data2 = data.get("wind")
