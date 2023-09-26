@@ -15,9 +15,9 @@ password = 'xxxx'
 Hname = "xxxx"
 
 
-#https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid=7d635aea345b49cbecc4d2158bebe7b2
+#https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid=
 def get_weather_data():
-    weather_url = 'https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid=7d635aea345b49cbecc4d2158bebe7b2'
+    weather_url = 'https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid='
 
     try:
         response = requests.get(weather_url)
