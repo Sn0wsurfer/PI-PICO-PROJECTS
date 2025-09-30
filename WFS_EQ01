@@ -8,7 +8,7 @@ url = (
     "&request=GetFeature"
     "&typeName=geonet:quake_search_v1"
     "&maxFeatures=10"
-    "&outputFormat=application/json"
+    "&outputFormat=json"
 )
 
 seen_ids = set()  # keep track of earthquakes already shown
