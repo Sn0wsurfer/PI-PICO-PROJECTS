@@ -1,0 +1,57 @@
+import requests
+import time
+
+url = (
+    "https://wfs.geonet.org.nz/geonet/ows?"
+    "service=WFS"
+    "&version=1.0.0"
+    "&request=GetFeature"
+    "&typeName=geonet:quake_search_v1"
+    "&maxFeatures=10"
+    "&outputFormat=json"
+)
+
+seen_ids = set()  # keep track of earthquakes already shown
+
+while True:
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("features"):
+            # Sort by origintime (most recent first)
+            quakes = sorted(
+                data["features"],
+                key=lambda q: q["properties"]["origintime"],
+                reverse=True
+            )
+
+            for quake in quakes:
+                props = quake["properties"]
+                geom = quake.get("geometry", {})
+                coords = geom.get("coordinates", [None, None, None])
+
+                lon = coords[0] if len(coords) > 0 else "N/A"
+                lat = coords[1] if len(coords) > 1 else "N/A"
+
+                qid = props.get("publicid")
+
+                if qid not in seen_ids:
+                    seen_ids.add(qid)
+                    print("New earthquake:")
+                    print(f"  Magnitude: {props.get('magnitude', 'N/A')}")
+                    print(f"  Depth: {props.get('depth', 'N/A')} km")
+                    print(f"  Time: {props.get('origintime', 'N/A')}")
+                    print(f"  Location: {props.get('locality', 'N/A')}")
+                    print(f"  Coordinates: lat={lat}, lon={lon}")
+                    print(f"  Public ID: {qid}")
+                    print("-" * 40)
+
+        else:
+            print("No earthquake data found.")
+
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+
+    time.sleep(60)  # wait 1 minute before checking again
