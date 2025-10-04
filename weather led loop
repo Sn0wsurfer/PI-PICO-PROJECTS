@@ -1,7 +1,7 @@
 import urequests as requests
 from machine import Pin
 from neopixel import Neopixel
-import ujson
+import ujson as json
 import network
 import socket
 from time import sleep
@@ -15,29 +15,55 @@ password = 'xxxx'
 Hname = "xxxx"
 
 
-#https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid=
-def get_weather_data():
-    weather_url = 'https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid='
+#https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&xxxx
+def get_weather_data():    
+    weather_url = 'https://api.checkwx.com/metar/NZWN/decoded?x-api-key=xxxx'
 
     try:
-        response = requests.get(weather_url)
-        if response.status_code == 200:
+        response = requests.get(weather_url).json()
         # Parse the JSON response
-            weather_data = ujson.loads(response.text)
-            
-            # Extract wind speed and temperature
-            wind_speed = weather_data.get("wind", {}).get("speed")
-            temperature = weather_data.get("main", {}).get("temp")
-            windno = int(round(wind_speed)*3.6)
-            temp = int(round(temperature -273.15))
-            
-            print(f"Wind Speed: {windno}kph")
-            print(f"Temperature: {temp}°C")
-            v_windno = windno
-            v_temp = temp
-            return [v_windno, v_temp]
+#             weather_data = ujson.loads(response.text)
+        json_str = json.dumps(response)
+        resp = json.loads(json_str)
+        data2 = response.get("data")
+        
+        json_str = json.dumps(data2)
+        resp = json.loads(json_str)
+        data3 = (resp[0])
+        
+        
+        json_str = json.dumps(data3)
+        resp = json.loads(json_str)
+        data4 = data3.get("wind")
+        temp4 = data3.get("temperature")
+       
+        json_str = json.dumps(temp4)
+        resp = json.loads(json_str)
+        temp5 = temp4.get("celsius")
+        
+        json_str = json.dumps(data4)
+        resp = json.loads(json_str)
+        data5 = data4.get("speed_kph")
+        data6 = data4.get("gust_kph")
+        
+        if data6 == None:
+            data7 = 0
         else:
-            print("Failed to fetch weather data")
+            data7 = data6
+        
+        windno = data5
+        wind_gt = data7
+        temp = temp5
+        
+        print(f"Wind Speed: {windno}kph")
+        print(f"Wind Gust: {wind_gt}kph")
+        print(f"Temperature: {temp}°C")
+        v_windno = windno
+        v_temp = temp
+        v_gust = wind_gt
+        return [v_windno, v_gust, v_temp]
+#         else:
+#             print("Failed to fetch weather data")
     except Exception as e:
         print('Error:', e)
         
@@ -63,7 +89,16 @@ def open_socket(ip):
     connection.listen(1)
     return(connection)
 
-def color_led(v_windno, v_temp):
+def clear_led():
+    numpix = 202
+    pixels = Neopixel(numpix, 0, 28, "GRB")
+    black = (0, 0, 0)
+    pixels.brightness(50)
+    pixels.fill(black)
+    pixels.show()
+    return
+    
+def color_led(v_windno, v_gust, v_temp):
     numpix = 202
     pixels = Neopixel(numpix, 0, 28, "GRB")
     yellow = (100, 100, 0)
@@ -79,6 +114,7 @@ def color_led(v_windno, v_temp):
     pixels.brightness(50)
     pixels.fill(green)
     pixels.set_pixel_line_gradient(101, v_windno + 100, pink, red)
+    pixels.set_pixel_line_gradient(101 + v_windno, 100 + v_gust, yellow, red)
     pixels.set_pixel_line_gradient(0, v_temp * 2, pink, red)
     # pixels.set_pixel_line(1, 16, red)
     # pixels.set_pixel(20, (255, 255, 255))
@@ -105,12 +141,11 @@ def color_led(v_windno, v_temp):
 try:
     ip = connect()
     connection = open_socket(ip)
+    get_weather_data() 
     while True:
-        v_windno, v_temp = get_weather_data() 
-        color_led(v_windno,v_temp)
+        v_windno, v_gust, v_temp = get_weather_data() 
+        color_led(v_windno, v_gust, v_temp) 
         time.sleep(900)
-    
+        clear_led()
 except KeyboardInterrupt:
     machine.reset()
-
-
