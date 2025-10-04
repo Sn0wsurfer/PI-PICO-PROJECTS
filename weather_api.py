@@ -7,9 +7,9 @@ from picozero import pico_temp_sensor, pico_led
 import machine
 
 # network.hostname("Jungle_S_LED")
-ssid = 'PreAnthropocene'
-password = 'Arr1p1sTrutt@'
-Hname = "Jungle_S_LED"
+ssid = xxxx
+password = xxxx
+Hname = xxxx
 
 #https://api.openweathermap.org/data/2.5/weather?lat=-41.328&lon=174.805&appid=
 def get_weather_data():
